@@ -1,0 +1,6 @@
+# object and vim temp files
+*.o
+.*swp
+
+# targets
+test_*
