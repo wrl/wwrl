@@ -8,7 +8,8 @@
 /* makes double-pointers look a little less nasty */
 #define SELF (*self)
 
-static void __rotate_left(tree_node_t **self) {
+static void __rotate_left(tree_node_t **self)
+{
 	tree_node_t *rght = SELF->RHT;
 
 	SELF->RHT = rght->LFT;
@@ -20,10 +21,11 @@ static void __rotate_left(tree_node_t **self) {
 	SELF = rght;
 }
 
-static void __rotate_right(tree_node_t **self) {
+static void __rotate_right(tree_node_t **self)
+{
 	tree_node_t *left = SELF->LFT;
 
-	SELF->LFT  = left->RHT;
+	SELF->LFT = left->RHT;
 	left->RHT = SELF;
 
 	left->c = SELF->c;
@@ -32,13 +34,14 @@ static void __rotate_right(tree_node_t **self) {
 	SELF = left;
 }
 
-static void __colorflip(tree_node_t *self) {
+static void __colorflip(tree_node_t *self)
+{
 	self->c = !self->c;
 
-	if( self->LFT )
-		self->LFT->c  = !self->LFT->c;
+	if (self->LFT)
+		self->LFT->c = !self->LFT->c;
 
-	if(	self->RHT )
+	if (self->RHT)
 		self->RHT->c = !self->RHT->c;
 }
 
@@ -51,46 +54,50 @@ static void __colorflip(tree_node_t *self) {
 			   SELF->RHT->RHT->key, !SELF->RHT->RHT->c\
 			   )
 
-static void __fixup(tree_node_t **self) {
-	if( IS_RED(SELF->RHT) )
+static void __fixup(tree_node_t **self)
+{
+	if (IS_RED(SELF->RHT))
 		__rotate_left(self);
 
-	if( IS_RED(SELF->LFT) && IS_RED(SELF->LFT->LFT) )
+	if (IS_RED(SELF->LFT) && IS_RED(SELF->LFT->LFT))
 		__rotate_right(self);
 
-	if( IS_RED(SELF->LFT) && IS_RED(SELF->RHT) )
+	if (IS_RED(SELF->LFT) && IS_RED(SELF->RHT))
 		__colorflip(SELF);
 }
 
-static void __move_red_right(tree_node_t **self) {
+static void __move_red_right(tree_node_t **self)
+{
 	__colorflip(SELF);
 
-	if( SELF->LFT && IS_RED(SELF->LFT->LFT) ) {
+	if (SELF->LFT && IS_RED(SELF->LFT->LFT)) {
 		__rotate_right(self);
 		__colorflip(SELF);
 	}
 }
 
-static void __move_red_left(tree_node_t **self) {
+static void __move_red_left(tree_node_t **self)
+{
 	__colorflip(SELF);
 
-	if( SELF->RHT && IS_RED(SELF->RHT->LFT) ) {
+	if (SELF->RHT && IS_RED(SELF->RHT->LFT)) {
 		__rotate_right(&(SELF->RHT));
 		__rotate_left(self);
 		__colorflip(SELF);
 	}
 }
 
-static tree_node_t *__remove_min(tree_node_t **self) {
+static tree_node_t *__remove_min(tree_node_t **self)
+{
 	tree_node_t *ret;
 
-	if( !SELF->LFT ) {
+	if (!SELF->LFT) {
 		ret = SELF;
 		SELF = ret->RHT;
 		return ret;
 	}
 
-	if( NOT_RED(SELF->LFT) && NOT_RED(SELF->LFT->LFT) )
+	if (NOT_RED(SELF->LFT) && NOT_RED(SELF->LFT->LFT))
 		__move_red_left(self);
 
 	printf("%d\n", SELF->key);
@@ -101,31 +108,32 @@ static tree_node_t *__remove_min(tree_node_t **self) {
 	return ret;
 }
 
-static tree_node_t *__remove(tree_node_t **self, const int key) {
+static tree_node_t *__remove(tree_node_t **self, const int key)
+{
 	tree_node_t *ret;
 
-	if( !SELF )
+	if (!SELF)
 		return NULL;
 
-	if( key < SELF->key ) {
-		if( NOT_RED(SELF->LFT) && NOT_RED(SELF->LFT->LFT) )
+	if (key < SELF->key) {
+		if (NOT_RED(SELF->LFT) && NOT_RED(SELF->LFT->LFT))
 			__move_red_left(self);
 
 		ret = __remove(&(SELF->LFT), key);
 	} else {
-		if( IS_RED(SELF->LFT) )
+		if (IS_RED(SELF->LFT))
 			__rotate_right(self);
 
-		if( SELF->key == key && !SELF->RHT ) {
+		if (SELF->key == key && !SELF->RHT) {
 			ret = SELF;
 			SELF = ret->LFT;
 			return ret;
 		}
 
-		if( SELF->LFT && NOT_RED(SELF->RHT) && NOT_RED(SELF->RHT->LFT) )
+		if (SELF->LFT && NOT_RED(SELF->RHT) && NOT_RED(SELF->RHT->LFT))
 			__move_red_right(self);
 
-		if( SELF->key == key ) {
+		if (SELF->key == key) {
 			ret = SELF;
 			SELF = __remove_min(&(SELF->RHT));
 
@@ -140,8 +148,9 @@ static tree_node_t *__remove(tree_node_t **self, const int key) {
 	return ret;
 }
 
-static void __walk_inorder(tree_node_t *self, tree_walk_callback_t cb) {
-	if( !self )
+static void __walk_inorder(tree_node_t *self, tree_walk_callback_t cb)
+{
+	if (!self)
 		return;
 
 	__walk_inorder(self->LFT, cb);
@@ -149,44 +158,47 @@ static void __walk_inorder(tree_node_t *self, tree_walk_callback_t cb) {
 	__walk_inorder(self->RHT, cb);
 }
 
-static int __insert(tree_node_t **self, tree_node_t *leaf) {
+static int __insert(tree_node_t **self, tree_node_t * leaf)
+{
 	tree_dir_t dir;
 	int status;
 
-	if( !SELF ) {
+	if (!SELF) {
 		SELF = leaf;
 		return 0;
 	}
 
-	if( IS_RED(SELF->LFT) && IS_RED(SELF->RHT) )
+	if (IS_RED(SELF->LFT) && IS_RED(SELF->RHT))
 		__colorflip(*self);
 
-	if( leaf->key != SELF->key ) {
+	if (leaf->key != SELF->key) {
 		dir = leaf->key > SELF->key;
-		status =  __insert(&(SELF->down[dir]), leaf);
+		status = __insert(&(SELF->down[dir]), leaf);
 	} else
 		status = 1;
 
-	if( IS_RED(SELF->RHT) )
+	if (IS_RED(SELF->RHT))
 		__rotate_left(self);
 
-	if( IS_RED(SELF->LFT) && IS_RED(SELF->LFT->LFT) )
+	if (IS_RED(SELF->LFT) && IS_RED(SELF->LFT->LFT))
 		__rotate_right(self);
 
 	return status;
 }
 
-tree_t *tree_new() {
+tree_t *tree_new()
+{
 	return calloc(1, sizeof(tree_t));
 }
 
-int tree_insert(tree_t *self, tree_node_t *leaf) {
+int tree_insert(tree_t *self, tree_node_t * leaf)
+{
 	int ret;
 
 	assert(self);
 	assert(leaf);
 
-	if( !self->root ) {
+	if (!self->root) {
 		self->root = leaf;
 		return 0;
 	}
@@ -197,20 +209,22 @@ int tree_insert(tree_t *self, tree_node_t *leaf) {
 	return ret;
 }
 
-tree_node_t *tree_remove(tree_t *self, const int key) {
+tree_node_t *tree_remove(tree_t *self, const int key)
+{
 	tree_node_t *ret;
 
 	assert(self);
 
 	ret = __remove(&self->root, key);
 
-	if( self->root )
+	if (self->root)
 		self->root->c = BLACK;
 
 	return ret;
 }
 
-tree_node_t *tree_search(tree_t *self, const int key) {
+tree_node_t *tree_search(tree_t *self, const int key)
+{
 	tree_node_t *node;
 	tree_dir_t dir;
 
@@ -218,18 +232,19 @@ tree_node_t *tree_search(tree_t *self, const int key) {
 
 	node = self->root;
 
-	while( node ) {
-		if( key == node->key )
+	while (node) {
+		if (key == node->key)
 			return node;
 
-		dir  = key > node->key;
+		dir = key > node->key;
 		node = node->down[dir];
 	}
 
 	return NULL;
 }
 
-void tree_walk_inorder(tree_t *self, tree_walk_callback_t cb) {
+void tree_walk_inorder(tree_t *self, tree_walk_callback_t cb)
+{
 	assert(self);
 	assert(cb);
 
