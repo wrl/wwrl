@@ -47,7 +47,7 @@
 	if (!initial_size)						\
 		(vec)->capacity = 1;					\
 	else								\
-		(vec)->capacity = initial_size;				\
+		(vec)->capacity = (initial_size);			\
 	(vec)->data = (allocatr)->calloc(sizeof(*(vec)->data),		\
 			(vec)->capacity);				\
 } while (0)
@@ -78,16 +78,16 @@
 
 #define VECTOR_INSERT_DATA(vec, after, items, count) do {		\
 	assert((vec)->data);						\
-	if ((vec)->size + count >= (vec)->capacity) {			\
-		(vec)->capacity += count;				\
+	if ((vec)->size + (count) >= (vec)->capacity) {			\
+		(vec)->capacity += (count);				\
 		(vec)->data = (vec)->allocator->realloc((vec)->data,	\
 			(vec)->capacity * sizeof(*(vec)->data));	\
 	}								\
-	memmove((vec)->data + count + after, (vec)->data + after,	\
-		((vec)->size - after) * sizeof(*(vec)->data));		\
-	memcpy((vec)->data + after, items,				\
-			count * sizeof(*(vec)->data));			\
-	(vec)->size += count;						\
+	memmove((vec)->data + (count) + (after), (vec)->data + (after),	\
+		((vec)->size - (after)) * sizeof(*(vec)->data));	\
+	memcpy((vec)->data + (after), (items),				\
+			(count) * sizeof(*(vec)->data));		\
+	(vec)->size += (count);						\
 } while (0)
 
 #define VECTOR_INSERT(vec, after, item)					\
@@ -99,9 +99,9 @@
 
 #define VECTOR_ERASE_RANGE(vec, first, last) do {			\
 	assert((vec)->data);						\
-	memmove((vec)->data + first, (vec)->data + last,		\
-		((vec)->size - last) * sizeof(*vec->data));		\
-	(vec)->size -= (last - first);					\
+	memmove((vec)->data + (first), (vec)->data + (last),		\
+		((vec)->size - (last)) * sizeof(*vec->data));		\
+	(vec)->size -= ((last) - (first));				\
 } while (0)
 
 #define VECTOR_ERASE(vec, which)					\
@@ -118,20 +118,20 @@
 		(vec)->data = (vec)->allocator->realloc((vec)->data,	\
 			(vec)->capacity * sizeof(*(vec)->data));	\
 	}								\
-	(vec)->data[(vec)->size] = *item;				\
+	(vec)->data[(vec)->size] = *(item);				\
 	(vec)->size++;							\
 } while(0)
 
 #define VECTOR_PUSH_BACK_DATA(vec, items, count) do {			\
 	assert((vec)->data);						\
-	if ((vec)->size + count >= (vec)->capacity) {			\
-		(vec)->capacity += count;				\
+	if ((vec)->size + (count) >= (vec)->capacity) {			\
+		(vec)->capacity += (count);				\
 		(vec)->data = (vec)->allocator->realloc((vec)->data,	\
 			(vec)->capacity * sizeof(*(vec)->data));	\
 	}								\
 	memcpy(&(vec)->data[(vec)->size],				\
-		items, count * sizeof(*(vec)->data));			\
-	(vec)->size += count;						\
+		(items), (count) * sizeof(*(vec)->data));		\
+	(vec)->size += (count);						\
 } while (0)
 
 /**
@@ -147,7 +147,7 @@
 	}								\
 	memmove((vec)->data + 1, (vec)->data,				\
 			(vec)->size * sizeof(*(vec)->data));		\
-	(vec)->data[0] = *item;						\
+	(vec)->data[0] = *(item);					\
 	(vec)->size++;							\
 } while(0)
 
