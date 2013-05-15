@@ -23,6 +23,9 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
+#ifndef _WWRL_VECTOR_H_
+#define _WWRL_VECTOR_H_
+
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -174,3 +177,4 @@
 } while(0)
 
 /* vim: set ts=8 sw=8 sts=8: */
+#endif /* ndef _WWRL_VECTOR_H_ */

@@ -23,9 +23,14 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
+#ifndef _WWRL_ALLOCATOR_H_
+#define _WWRL_ALLOCATOR_H_
+
 struct wwrl_allocator {
 	void *(*malloc)(size_t size);
 	void (*free)(void *ptr);
 	void *(*calloc)(size_t nmemb, size_t size);
 	void *(*realloc)(void *ptr, size_t size);
 };
+
+#endif /* ndef _WWRL_ALLOCATOR_H_ */
