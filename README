@@ -1,1 +1,24 @@
-here are some datastructure fiddlings-about i have done
+                      _
+   _ _ _  _ _ _  _ _ | |
+  | | | || | | || '_>| |
+  |__/_/ |__/_/ |_|  |_|
+
+    "It's a twisted cosmic joke that in order to shave a Yak
+     one must first forge a razor from scratch."
+                                        -- @fogus
+
+  wwrl is `will's wheel reinvention library.` it is a collection
+  of data structures in C, many of which have been written before.
+
+  here's what's here so far:
+
+      vector.h
+          an implementation of dynamic/growable arrays which is
+          very loosely modelled after std::vector. it is implemented
+          in the same macro style as the BSD queue and tree headers.
+
+      allocator.h
+          defines `struct wwrl_allocator`, which is used by the
+          vector implementation.
+
+  questions, comments, and/or drawings of wildebeest to wrl@illest.net.
