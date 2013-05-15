@@ -54,13 +54,15 @@ struct vector_state expected[] = {
 	/* push front     */ {15, (int []) {46, 47, 48, 49, 50, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9}},
 	/* insert         */ {16, (int []) {46, 47, 48, 49, 50, 0, 1, 42, 2, 3, 4, 5, 6, 7, 8, 9}},
 	/* pop back       */ {11, (int []) {46, 47, 48, 49, 50, 0, 1, 42, 2, 3, 4}},
+	/* erase          */ {10, (int []) {46, 47, 48, 49, 0, 1, 42, 2, 3, 4}},
 	/* pop front      */ {5,  (int []) {1, 42, 2, 3, 4}},
 	/* clear          */ {0, NULL},
 	/* push back data */ {7,  (int []) {2, 4, 6, 8, 10, 12, 42}},
 	/* push back data */ {10, (int []) {42, 42, 42, 2, 4, 6, 8, 10, 12, 42}},
 	/* insert data    */ {15, (int []) {42, 42, 42, 2, 4, 0, 0, 0, 0, 0, 6, 8, 10, 12, 42}},
+	/* erase range    */ {12, (int []) {42, 42, 0, 0, 0, 0, 0, 6, 8, 10, 12, 42}},
 
-	                     {0, NULL}
+	{0, NULL}
 };
 
 static void print_array(int *a, size_t count)
@@ -133,6 +135,11 @@ TEST_CASE(pop_back)
 		VECTOR_POP_BACK(vec);
 }
 
+TEST_CASE(erase)
+{
+	VECTOR_ERASE(vec, 4);
+}
+
 TEST_CASE(pop_front)
 {
 	for (; vec->data[0];)
@@ -163,6 +170,10 @@ TEST_CASE(insert_data) {
 	VECTOR_INSERT_DATA(vec, 5, data, ARRAY_LENGTH(data));
 }
 
+TEST_CASE(erase_range) {
+	VECTOR_ERASE_RANGE(vec, 2, 5);
+}
+
 /**
  * and let's run them
  */
@@ -188,6 +199,7 @@ int main(int argc, char **argv)
 	RUN_TEST(push_front);
 	RUN_TEST(insert);
 	RUN_TEST(pop_back);
+	RUN_TEST(erase);
 	RUN_TEST(pop_front);
 	RUN_TEST(clear);
 
@@ -195,6 +207,7 @@ int main(int argc, char **argv)
 	RUN_TEST(push_back_data);
 	RUN_TEST(push_front_data);
 	RUN_TEST(insert_data);
+	RUN_TEST(erase_range);
 
 	VECTOR_FREE(&test_vec);
 

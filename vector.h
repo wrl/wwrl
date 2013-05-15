@@ -94,6 +94,20 @@
 	VECTOR_INSERT_DATA(vec, after, item, 1)
 
 /**
+ * erase
+ */
+
+#define VECTOR_ERASE_RANGE(vec, first, last) do {			\
+	assert((vec)->data);						\
+	memmove((vec)->data + first, (vec)->data + last,		\
+		((vec)->size - last) * sizeof(*vec->data));		\
+	(vec)->size -= (last - first);					\
+} while (0)
+
+#define VECTOR_ERASE(vec, which)					\
+	VECTOR_ERASE_RANGE(vec, which, which + 1)
+
+/**
  * push back
  */
 
