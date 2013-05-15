@@ -23,6 +23,7 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -36,67 +37,92 @@ struct wwrl_allocator {
 #define VECTOR(tag, type)						\
 	struct tag {							\
 		struct wwrl_allocator *allocator;			\
-		size_t used;						\
-		size_t available;					\
+		size_t size;						\
+		size_t capacity;					\
 		type *data;						\
 	}
 
 #define VECTOR_FRONT(vec) ((vec)->data)
-#define VECTOR_BACK(vec) (&(vec)->data[(vec)->used - 1])
+#define VECTOR_BACK(vec) (&(vec)->data[(vec)->size - 1])
 
 #define VECTOR_INIT(vec, allocatr, initial_size) do {			\
+	assert(!(vec)->data);						\
 	(vec)->allocator = (allocatr);					\
-	(vec)->used = 0;						\
+	(vec)->size = 0;						\
 	if (!initial_size)						\
-		(vec)->available = 1;					\
+		(vec)->capacity = 1;					\
 	else								\
-		(vec)->available = initial_size;			\
+		(vec)->capacity = initial_size;				\
 	(vec)->data = (allocatr)->calloc(sizeof(*(vec)->data),		\
-			(vec)->available);				\
+			(vec)->capacity);				\
+} while (0)
+
+#define VECTOR_FREE(vec) do {						\
+	assert((vec)->data);						\
+	(vec)->size = 0;						\
+	(vec)->capacity = 0;						\
+	(vec)->allocator->free((vec)->data);				\
+	(vec)->data = NULL;						\
+} while (0)
+
+#define VECTOR_CLEAR(vec) do {						\
+	assert((vec)->data);						\
+	(vec)->size = 0;						\
+} while (0)
+
+#define VECTOR_SHRINK_TO_FIT(vec) do {					\
+	assert((vec)->data);						\
+	(vec)->capacity = ((vec)->size) ? (vec)->size : 1;		\
+	(vec)->data = (vec)->allocator->realloc((vec)->data,		\
+			(vec)->capacity * sizeof(*(vec)->data));	\
 } while (0)
 
 /**
  * insert
  */
 
-#define VECTOR_INSERT_DATA(vec, where, items, count) do {		\
-	if ((vec)->used + count >= (vec)->available) {			\
-		(vec)->available += count;				\
+#define VECTOR_INSERT_DATA(vec, after, items, count) do {		\
+	assert((vec)->data);						\
+	if ((vec)->size + count >= (vec)->capacity) {			\
+		(vec)->capacity += count;				\
 		(vec)->data = (vec)->allocator->realloc((vec)->data,	\
-			(vec)->available * sizeof(*(vec)->data));	\
+			(vec)->capacity * sizeof(*(vec)->data));	\
 	}								\
-	memmove((vec)->data + count + where, (vec)->data + where,	\
-		((vec)->used - where) * sizeof(*(vec)->data));		\
-	memcpy((vec)->data + where, items,				\
+	memmove((vec)->data + count + after, (vec)->data + after,	\
+		((vec)->size - after) * sizeof(*(vec)->data));		\
+	memcpy((vec)->data + after, items,				\
 			count * sizeof(*(vec)->data));			\
-	(vec)->used += count;						\
+	(vec)->size += count;						\
 } while (0)
 
-#define VECTOR_INSERT(vec, where, item)					\
-	VECTOR_INSERT_DATA(vec, where, item, 1)
+#define VECTOR_INSERT(vec, after, item)					\
+	VECTOR_INSERT_DATA(vec, after, item, 1)
 
 /**
  * push back
  */
 
 #define VECTOR_PUSH_BACK(vec, item) do {				\
-	if ((vec)->used >= (vec)->available) {				\
-		(vec)->available *= 2;					\
+	assert((vec)->data);						\
+	if ((vec)->size >= (vec)->capacity) {				\
+		(vec)->capacity *= 2;					\
 		(vec)->data = (vec)->allocator->realloc((vec)->data,	\
-			(vec)->available * sizeof(*(vec)->data));	\
+			(vec)->capacity * sizeof(*(vec)->data));	\
 	}								\
-	(vec)->data[(vec)->used] = *item;				\
-	(vec)->used++;							\
+	(vec)->data[(vec)->size] = *item;				\
+	(vec)->size++;							\
 } while(0)
 
 #define VECTOR_PUSH_BACK_DATA(vec, items, count) do {			\
-	if ((vec)->used + count >= (vec)->available) {			\
-		(vec)->available += count;				\
+	assert((vec)->data);						\
+	if ((vec)->size + count >= (vec)->capacity) {			\
+		(vec)->capacity += count;				\
 		(vec)->data = (vec)->allocator->realloc((vec)->data,	\
-			(vec)->available * sizeof(*(vec)->data));	\
+			(vec)->capacity * sizeof(*(vec)->data));	\
 	}								\
-	memcpy(VECTOR_BACK(vec), items, count * sizeof(*(vec)->data));	\
-	(vec)->used += count;						\
+	memcpy(&(vec)->data[(vec)->size],				\
+		items, count * sizeof(*(vec)->data));			\
+	(vec)->size += count;						\
 } while (0)
 
 /**
@@ -104,15 +130,16 @@ struct wwrl_allocator {
  */
 
 #define VECTOR_PUSH_FRONT(vec, item) do {				\
-	if ((vec)->used >= (vec)->available) {				\
-		(vec)->available *= 2;					\
+	assert((vec)->data);						\
+	if ((vec)->size >= (vec)->capacity) {				\
+		(vec)->capacity *= 2;					\
 		(vec)->data = (vec)->allocator->realloc((vec)->data,	\
-			(vec)->available * sizeof(*(vec)->data));	\
+			(vec)->capacity * sizeof(*(vec)->data));	\
 	}								\
 	memmove((vec)->data + 1, (vec)->data,				\
-			(vec)->used * sizeof(*(vec)->data));		\
+			(vec)->size * sizeof(*(vec)->data));		\
 	(vec)->data[0] = *item;						\
-	(vec)->used++;							\
+	(vec)->size++;							\
 } while(0)
 
 #define VECTOR_PUSH_FRONT_DATA(vec, items, count)			\
@@ -123,16 +150,18 @@ struct wwrl_allocator {
  */
 
 #define VECTOR_POP_BACK(vec) do {					\
-	if ((vec)->used)						\
-		--(vec)->used;						\
+	assert((vec)->data);						\
+	if ((vec)->size)						\
+		--(vec)->size;						\
 } while(0)
 
 #define VECTOR_POP_FRONT(vec) do {					\
-	if (!(vec)->used)						\
+	assert((vec)->data);						\
+	if (!(vec)->size)						\
 		break;							\
-	(vec)->used--;							\
+	(vec)->size--;							\
 	memmove((vec)->data, (vec)->data + 1,				\
-		(vec)->used * sizeof(*(vec)->data));			\
+		(vec)->size * sizeof(*(vec)->data));			\
 } while(0)
 
-/* vim: set ts=8 sw=8: */
+/* vim: set ts=8 sw=8 sts=8: */
