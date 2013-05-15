@@ -100,7 +100,7 @@
 #define VECTOR_ERASE_RANGE(vec, first, last) do {			\
 	assert((vec)->data);						\
 	memmove((vec)->data + (first), (vec)->data + (last),		\
-		((vec)->size - (last)) * sizeof(*vec->data));		\
+		((vec)->size - (last)) * sizeof(*(vec)->data));		\
 	(vec)->size -= ((last) - (first));				\
 } while (0)
 
