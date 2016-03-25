@@ -73,11 +73,11 @@ wraparound:
 }
 
 struct wwrl_bip_buffer_read_vector
-wwrl_bip_buffer_get_read_vector(struct wwrl_bip_buffer *self)
+wwrl_bip_buffer_get_read_vector(const struct wwrl_bip_buffer *self)
 {
 	return (struct wwrl_bip_buffer_read_vector) {
-		.ptr = &self->data[self->a_start],
-		.nbytes = self->a_end - self->a_start,
+		.data       = &self->data[self->a_start],
+		.nbytes     = self->a_end - self->a_start,
 		.call_again = self->b_active
 	};
 }

@@ -34,7 +34,7 @@ struct wwrl_bip_buffer {
 };
 
 struct wwrl_bip_buffer_read_vector {
-	uint8_t *ptr;
+	const uint8_t *data;
 	size_t nbytes;
 
 	int call_again;
@@ -47,5 +47,5 @@ uint8_t *wwrl_bip_buffer_get_write_vector(struct wwrl_bip_buffer *,
 int wwrl_bip_buffer_write_commit(struct wwrl_bip_buffer *, size_t nbytes);
 
 struct wwrl_bip_buffer_read_vector wwrl_bip_buffer_get_read_vector(
-		struct wwrl_bip_buffer *);
+		const struct wwrl_bip_buffer *);
 int wwrl_bip_buffer_read_commit(struct wwrl_bip_buffer *, size_t nbytes);
