@@ -9,14 +9,21 @@ SRC_DIR   = src
 
 TARGETS   = $(BUILD_DIR)
 TARGETS  += $(BUILD_DIR)/vector_test
+TARGETS  += $(BUILD_DIR)/bip_buffer_test
 
 VECTOR_TEST_OBJECTS  = $(BUILD_DIR)/vector_test.o
+
+BIP_BUFFER_TEST_OBJECTS  = $(BUILD_DIR)/bip_buffer_test.o
+BIP_BUFFER_TEST_OBJECTS += $(BUILD_DIR)/bip_buffer.o
 
 .PHONY: clean
 
 all: $(TARGETS)
 
-$(BUILD_DIR)/mq_test: $(MQ_TEST_OBJECTS)
+$(BUILD_DIR)/vector_test: $(VECTOR_TEST_OBJECTS)
+	$(LD) $(LDFLAGS) -o $@ $<
+
+$(BUILD_DIR)/bip_buffer_test: $(BIP_BUFFER_TEST_OBJECTS)
 	$(LD) $(LDFLAGS) -o $@ $<
 
 clean:
