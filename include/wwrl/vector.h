@@ -30,7 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "allocator.h"
+#include <wwrl/allocator.h>
 
 #define VECTOR(tag, type)						\
 	struct tag {							\

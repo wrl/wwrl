@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "vector.h"
+#include <wwrl/vector.h>
 
 #define ARRAY_LENGTH(a) (sizeof(a) / sizeof(*a))
 
@@ -44,12 +44,12 @@ VECTOR(test_vec, int);
  */
 
 struct vector_state {
-	int size;
+	unsigned size;
 	int *data;
 };
 
 struct vector_state expected[] = {
-	/* initial state  */ {0},
+	/* initial state  */ {0, NULL},
 	/* push back      */ {10, (int []) {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}},
 	/* push front     */ {15, (int []) {46, 47, 48, 49, 50, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9}},
 	/* insert         */ {16, (int []) {46, 47, 48, 49, 50, 0, 1, 42, 2, 3, 4, 5, 6, 7, 8, 9}},
@@ -67,7 +67,7 @@ struct vector_state expected[] = {
 
 static void print_array(int *a, size_t count)
 {
-	int i;
+	unsigned i;
 
 	for (i = 0; i < count; i++)
 		printf("%d ", a[i]);
@@ -180,7 +180,7 @@ TEST_CASE(erase_range) {
 
 int main(int argc, char **argv)
 {
-	struct test_vec test_vec = {0};
+	struct test_vec test_vec = {NULL, 0, 0, NULL};
 	int step = 0;
 
 #define CHECK check_vector_step(&test_vec, step++)

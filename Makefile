@@ -1,18 +1,29 @@
-CC = gcc
-LD = $(CC)
+CC        = clang
+LD        = $(CC)
 
-CFLAGS  = -ggdb -std=c99 -Werror -Wall -pedantic -std=c99
-LDFLAGS = -rdynamic
+CFLAGS    = -std=c99 -Wall -Wextra -Werror -Wno-unused-parameter -pedantic -D_GNU_SOURCE -Iinclude
+LDFLAGS   = -flto
 
-TARGETS = vector_test
+BUILD_DIR = build
+SRC_DIR   = src
+
+TARGETS   = $(BUILD_DIR)
+TARGETS  += $(BUILD_DIR)/vector_test
+
+VECTOR_TEST_OBJECTS  = $(BUILD_DIR)/vector_test.o
+
+.PHONY: clean
 
 all: $(TARGETS)
 
+$(BUILD_DIR)/mq_test: $(MQ_TEST_OBJECTS)
+	$(LD) $(LDFLAGS) -o $@ $<
+
 clean:
-	rm -f $(TARGETS) *.o
+	rm -rf $(BUILD_DIR)
 
-vector_test: vector_test.o
-	$(LD) $(LDFLAGS) $< -o $@
+$(BUILD_DIR):
+	@mkdir -p $@
 
-.c.o:
-	$(CC) $(CFLAGS) -c $< -o $@
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+	$(CC) $(CFLAGS) -o $@ -c $<
