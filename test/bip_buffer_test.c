@@ -25,29 +25,44 @@
 
 #include <wwrl/bip_buffer.h>
 
-static void
-print_bip(const struct wwrl_bip_buffer *bip)
-{
-	printf(
-		" :: a_start:  %zd\n"
-		" :: a_end:    %zd\n"
-		" :: b_active: %d\n"
-		" :: b_end:    %zd\n\n",
-		bip->a_start, bip->a_end, bip->b_active, bip->b_end);
-}
+#include "minunit.h"
 
-int
-main(int argc, char **argv)
+MU_TEST(test_partial_buffer)
 {
+	uint8_t buf[sizeof(struct wwrl_bip_buffer) + 8], *write;
 	struct wwrl_bip_buffer_read_vector read;
 	struct wwrl_bip_buffer *bip;
-	uint8_t buf[512], *write;
 
 	bip = (void *) buf;
 	wwrl_bip_buffer_init(bip, 8);
 
-	puts(" :: start");
-	print_bip(bip);
+	write = wwrl_bip_buffer_get_write_vector(bip, 4);
+	write[0] = 1;
+	write[1] = 2;
+	write[2] = 3;
+	write[3] = 4;
+	wwrl_bip_buffer_write_commit(bip, 4);
+
+	mu_check(wwrl_bip_buffer_get_write_vector(bip, 5) == NULL);
+
+	read = wwrl_bip_buffer_get_read_vector(bip);
+	mu_assert_int_eq(4, read.nbytes);
+	mu_assert_int_eq(0, read.call_again);
+	mu_assert_int_eq(1, read.data[0]);
+	mu_assert_int_eq(2, read.data[1]);
+	mu_assert_int_eq(3, read.data[2]);
+	mu_assert_int_eq(4, read.data[3]);
+	wwrl_bip_buffer_read_commit(bip, read.nbytes);
+}
+
+MU_TEST(test_full_buffer)
+{
+	uint8_t buf[sizeof(struct wwrl_bip_buffer) + 8], *write;
+	struct wwrl_bip_buffer_read_vector read;
+	struct wwrl_bip_buffer *bip;
+
+	bip = (void *) buf;
+	wwrl_bip_buffer_init(bip, 8);
 
 	write = wwrl_bip_buffer_get_write_vector(bip, 8);
 	write[0] = 11;
@@ -60,80 +75,144 @@ main(int argc, char **argv)
 	write[7] = 18;
 	wwrl_bip_buffer_write_commit(bip, 8);
 
-	puts(" :: first write");
-	print_bip(bip);
+	mu_check(wwrl_bip_buffer_get_write_vector(bip, 0) != NULL);
+	mu_check(wwrl_bip_buffer_get_write_vector(bip, 1) == NULL);
 
 	read = wwrl_bip_buffer_get_read_vector(bip);
-	assert(read.nbytes == 8);
-	assert(read.call_again == 0);
-	assert(read.data[0] == 11);
-	assert(read.data[1] == 12);
-	assert(read.data[2] == 13);
-	assert(read.data[3] == 14);
-	assert(read.data[4] == 15);
-	assert(read.data[5] == 16);
-	assert(read.data[6] == 17);
-	assert(read.data[7] == 18);
+	mu_assert_int_eq(read.nbytes, 8);
+	mu_assert_int_eq(read.call_again, 0);
+	mu_assert_int_eq(read.data[0], 11);
+	mu_assert_int_eq(read.data[1], 12);
+	mu_assert_int_eq(read.data[2], 13);
+	mu_assert_int_eq(read.data[3], 14);
+	mu_assert_int_eq(read.data[4], 15);
+	mu_assert_int_eq(read.data[5], 16);
+	mu_assert_int_eq(read.data[6], 17);
+	mu_assert_int_eq(read.data[7], 18);
 	wwrl_bip_buffer_read_commit(bip, read.nbytes);
 
-	puts(" :: first read");
-	print_bip(bip);
-
-	write = wwrl_bip_buffer_get_write_vector(bip, 7);
+	write = wwrl_bip_buffer_get_write_vector(bip, 4);
 	write[0] = 21;
 	write[1] = 22;
 	write[2] = 23;
 	write[3] = 24;
-	write[4] = 25;
-	write[5] = 26;
-	write[6] = 27;
-	wwrl_bip_buffer_write_commit(bip, 7);
+	wwrl_bip_buffer_write_commit(bip, 4);
 
-	puts(" :: second write");
-	print_bip(bip);
+	mu_check(wwrl_bip_buffer_get_write_vector(bip, 5) == NULL);
+
+	write = wwrl_bip_buffer_get_write_vector(bip, 4);
+	write[0] = 25;
+	write[1] = 26;
+	write[2] = 27;
+	write[3] = 28;
+	wwrl_bip_buffer_write_commit(bip, 4);
 
 	read = wwrl_bip_buffer_get_read_vector(bip);
-	assert(read.nbytes == 7);
-	assert(read.call_again == 0);
-	assert(read.data[0] == 21);
-	assert(read.data[1] == 22);
-	assert(read.data[2] == 23);
-	assert(read.data[3] == 24);
-	assert(read.data[4] == 25);
-	wwrl_bip_buffer_read_commit(bip, 5);
+	mu_assert_int_eq(read.nbytes, 8);
+	mu_assert_int_eq(read.call_again, 0);
+	mu_assert_int_eq(read.data[0], 21);
+	mu_assert_int_eq(read.data[1], 22);
+	mu_assert_int_eq(read.data[2], 23);
+	mu_assert_int_eq(read.data[3], 24);
+	mu_assert_int_eq(read.data[4], 25);
+	mu_assert_int_eq(read.data[5], 26);
+	mu_assert_int_eq(read.data[6], 27);
+	mu_assert_int_eq(read.data[7], 28);
+	wwrl_bip_buffer_read_commit(bip, read.nbytes);
 
-	puts(" :: second read");
-	print_bip(bip);
+	mu_check(wwrl_bip_buffer_get_write_vector(bip, 8) != NULL);
+}
+
+MU_TEST(test_overfill_buffer)
+{
+	uint8_t buf[sizeof(struct wwrl_bip_buffer) + 8], *write;
+	struct wwrl_bip_buffer_read_vector read;
+	struct wwrl_bip_buffer *bip;
+
+	bip = (void *) buf;
+	wwrl_bip_buffer_init(bip, 8);
+
+	write = wwrl_bip_buffer_get_write_vector(bip, 9);
+	mu_check(!write);
+
+	read = wwrl_bip_buffer_get_read_vector(bip);
+	mu_assert_int_eq(read.nbytes, 0);
+	mu_assert_int_eq(read.call_again, 0);
+	wwrl_bip_buffer_read_commit(bip, read.nbytes);
+}
+
+MU_TEST(test_wraparound)
+{
+	uint8_t buf[sizeof(struct wwrl_bip_buffer) + 8], *write;
+	struct wwrl_bip_buffer_read_vector read;
+	struct wwrl_bip_buffer *bip;
+
+	bip = (void *) buf;
+	wwrl_bip_buffer_init(bip, 8);
 
 	write = wwrl_bip_buffer_get_write_vector(bip, 7);
-	assert(write == NULL);
+	write[0] = 11;
+	write[1] = 12;
+	write[2] = 13;
+	write[3] = 14;
+	write[4] = 15;
+	write[5] = 16;
+	write[6] = 17;
+	wwrl_bip_buffer_write_commit(bip, 7);
+
+	mu_check(wwrl_bip_buffer_get_write_vector(bip, 1) != NULL);
+	mu_check(wwrl_bip_buffer_get_write_vector(bip, 2) == NULL);
+
+	read = wwrl_bip_buffer_get_read_vector(bip);
+	mu_assert_int_eq(7,  read.nbytes);
+	mu_assert_int_eq(0,  read.call_again);
+	mu_assert_int_eq(11, read.data[0]);
+	mu_assert_int_eq(12, read.data[1]);
+	mu_assert_int_eq(13, read.data[2]);
+	mu_assert_int_eq(14, read.data[3]);
+	mu_assert_int_eq(15, read.data[4]);
+	wwrl_bip_buffer_read_commit(bip, 5);
+
+	mu_check(wwrl_bip_buffer_get_write_vector(bip, 5) != NULL);
+	mu_check(wwrl_bip_buffer_get_write_vector(bip, 6) == NULL);
+	mu_check(wwrl_bip_buffer_get_write_vector(bip, 7) == NULL);
+	mu_check(wwrl_bip_buffer_get_write_vector(bip, 8) == NULL);
+	mu_check(wwrl_bip_buffer_get_write_vector(bip, 9) == NULL);
 
 	write = wwrl_bip_buffer_get_write_vector(bip, 3);
-	write[0] = 31;
-	write[1] = 32;
-	write[2] = 33;
+	write[0] = 21;
+	write[1] = 22;
+	write[2] = 23;
 	wwrl_bip_buffer_write_commit(bip, 3);
 
-	puts(" :: third write");
-	print_bip(bip);
-
 	read = wwrl_bip_buffer_get_read_vector(bip);
-	assert(read.nbytes == 2);
-	assert(read.call_again == 1);
-	assert(read.data[0] == 26);
-	assert(read.data[1] == 27);
+	mu_assert_int_eq(2,  read.nbytes);
+	mu_assert_int_eq(1,  read.call_again);
+	mu_assert_int_eq(16, read.data[0]);
+	mu_assert_int_eq(17, read.data[1]);
 	wwrl_bip_buffer_read_commit(bip, read.nbytes);
 
-	puts(" :: fourth read");
-	print_bip(bip);
-
 	read = wwrl_bip_buffer_get_read_vector(bip);
-	assert(read.nbytes == 3);
-	assert(read.call_again == 0);
-	assert(read.data[0] == 31);
-	assert(read.data[1] == 32);
-	assert(read.data[2] == 33);
+	mu_assert_int_eq(3,  read.nbytes);
+	mu_assert_int_eq(0,  read.call_again);
+	mu_assert_int_eq(21, read.data[0]);
+	mu_assert_int_eq(22, read.data[1]);
+	mu_assert_int_eq(23, read.data[2]);
 	wwrl_bip_buffer_read_commit(bip, read.nbytes);
+}
 
+MU_TEST_SUITE(bip_buffer)
+{
+	MU_RUN_TEST(test_partial_buffer);
+	MU_RUN_TEST(test_full_buffer);
+	MU_RUN_TEST(test_overfill_buffer);
+	MU_RUN_TEST(test_wraparound);
+}
+
+int
+main(int argc, char **argv)
+{
+	MU_RUN_SUITE(bip_buffer);
+	MU_REPORT();
 	return 0;
 }

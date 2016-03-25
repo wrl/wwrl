@@ -1,8 +1,8 @@
 CC        = clang
 LD        = $(CC)
 
-CFLAGS    = -std=c99 -Wall -Wextra -Werror -Wno-unused-parameter -pedantic -D_GNU_SOURCE -Iinclude
-LDFLAGS   = -flto
+CFLAGS    = -std=c99 -Wall -Wextra -Werror -Wno-unused-parameter -pedantic -D_GNU_SOURCE -Iinclude -ggdb
+LDFLAGS   = -flto -ggdb
 
 BUILD_DIR = build
 TEST_DIR  = test
